@@ -22,8 +22,8 @@ submitButton.addEventListener("click", () => {
     alert("Please enter floor number in range 1-150");
   } else if (!LiftInput.value) {
     alert("Please enter lift number in range 1-25");
-  } else if (LiftInput.value > 25) {
-    alert("only 4 lifts are allowed!");
+  } else if (LiftInput.value > 50) {
+    alert("only 50 lifts are allowed!");
   } else if (LiftInput.value == 0 || floorInput.value == 0) {
     alert("Value can't be zero");
   } else if (floorInput.value > 150) {
