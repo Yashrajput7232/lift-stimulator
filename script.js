@@ -3,7 +3,11 @@ const LiftInput = document.getElementById("lift-input");
 const submitButton = document.getElementById("submit-btn");
 const container = document.getElementById("container");
 const liftContainer = document.createElement("div");
+// Assuming these are the current definitions
+const FLOOR_LIMIT = 100; // Updated floor limit
+const LIFT_LIMIT = 50;   // Updated lift limit
 
+// Rest of your code
 let floorVal = "";
 let liftVal = "";
 var prevFloor = 0;
@@ -15,15 +19,15 @@ submitButton.addEventListener("click", () => {
   if (!LiftInput.value && !floorInput.value) {
     alert("Please Enter number to generate Floors and Lifts");
   } else if (!floorInput.value) {
-    alert("Please enter floor number in range 1-15");
+    alert("Please enter floor number in range 1-150");
   } else if (!LiftInput.value) {
-    alert("Please enter lift number in range 1-4");
-  } else if (LiftInput.value > 4) {
+    alert("Please enter lift number in range 1-25");
+  } else if (LiftInput.value > 25) {
     alert("only 4 lifts are allowed!");
   } else if (LiftInput.value == 0 || floorInput.value == 0) {
     alert("Value can't be zero");
-  } else if (floorInput.value > 15) {
-    alert("Maximum no of floors are 15");
+  } else if (floorInput.value > 150) {
+    alert("Maximum no of floors are 150");
   } else if (LiftInput.value < 0 || floorInput.value < 0) {
     alert("No negative values are allowed");
   } else {
