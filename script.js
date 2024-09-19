@@ -1,199 +1,205 @@
-const floorInput = document.getElementById("floor-input");
-const LiftInput = document.getElementById("lift-input");
-const submitButton = document.getElementById("submit-btn");
-const container = document.getElementById("container");
-const liftContainer = document.createElement("div");
+document.getElementById('generate').addEventListener('click', generateBuilding);
 
-// Rest of your code
-let floorVal = "";
-let liftVal = "";
-var prevFloor = 0;
+let liftState = [];
+let pendingRequests = { up: [], down: [] };
+let liftBusy = [];
+let requestedFloors = { up: new Set(), down: new Set() };
+let liftDirections = []; // To track each lift's current direction
 
-let targetFloors = [];
-
-//on Submit button add values
-submitButton.addEventListener("click", () => {
-  if (!LiftInput.value && !floorInput.value) {
-    alert("Please Enter number to generate Floors and Lifts");
-  } else if (!floorInput.value) {
-    alert("Please enter number of floor ");
-  } else if (!LiftInput.value) {
-    alert("Please enter number of lift");
-  
-  } else if (LiftInput.value < 0 || floorInput.value < 0) {
-    alert("No negative values are allowed");
-  } else {
-    container.innerHTML = " ";
-    liftContainer.innerHTML = "";
-    for (let i = floorInput.value; i > 0; i--) {
-      // make floors
-      createFloors(i, LiftInput.value);
+function generateBuilding() {
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        errorMessage.remove();
     }
 
-    //empty input box
-    LiftInput.value = "";
-    floorInput.value = "";
-  }
-});
+    const floorsCount = parseInt(document.getElementById('floors').value);
+    const liftsCount = parseInt(document.getElementById('lifts').value);
 
-// make Floors
-
-function createFloors(floors, lifts) {
-  const floorDiv = document.createElement("div");
-
-  floorDiv.setAttribute("class", "floordiv");
-
-  const floorContainer = document.createElement("div");
-  floorContainer.setAttribute("class", "floor");
-
-  floorContainer.dataset.floor = floors;
-
-  const buttonContainer = document.createElement("div");
-
-  buttonContainer.setAttribute("class", "btn-div");
-
-  const UpButton = document.createElement("button");
-  const DownButton = document.createElement("button");
-
-  UpButton.setAttribute("class", "up-down");
-  DownButton.setAttribute("class", "up-down");
-
-  UpButton.setAttribute("id", floors);
-  DownButton.setAttribute("id", floors);
-
-  UpButton.innerText = "UP";
-  DownButton.innerText = "Down";
-
-  UpButton.dataset.floor = floors;
-  DownButton.dataset.floor = floors;
-
-  buttonContainer.append(UpButton);
-  buttonContainer.append(DownButton);
-
-  let floorNumber = document.createElement("p");
-
-  floorNumber.setAttribute("class", "floorName");
-
-  floorNumber.innerText = `Floor ${floors}`;
-
-  buttonContainer.append(floorNumber);
-
-  floorContainer.append(buttonContainer);
-
-  floorDiv.append(floorContainer);
-
-  container.append(floorDiv);
-
-  //Logic to generate Lifts
-
-  for (let j = 0; j < lifts; j++) {
-    //Check all lifts should be on 1st
-    if (floors === 1) {
-      let Lifts = document.createElement("div");
-      Lifts.setAttribute("class", "lift-div");
-
-      Lifts.setAttribute("onfloor", 1);
-
-      Lifts.dataset.currentLocation = prevFloor;
-      console.log(prevFloor);
-
-      leftDoor = document.createElement("div");
-      RightDoor = document.createElement("div");
-
-      leftDoor.setAttribute("class", "left-door");
-      RightDoor.setAttribute("class", "right-door");
-
-      Lifts.appendChild(leftDoor);
-      Lifts.appendChild(RightDoor);
-
-      liftContainer.appendChild(Lifts);
-      liftContainer.setAttribute("class", "lift");
-
-      floorContainer.append(liftContainer);
-
-      floorDiv.append(floorContainer);
-    }
-  }
-}
-
-let x = 0;
-
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("up-down")) {
-    if (e.target.dataset.floor === x) {
-      return;
-    } else {
-      LiftStatus(e.target.dataset.floor);
-    }
-
-    x = e.target.dataset.floor;
-  }
-});
-
-function LiftStatus(clickedFloor) {
-  const lifts = document.querySelectorAll(".lift-div");
-
-  let pos;
-
-  for (let i = 0; i < lifts.length; i++) {
-    if (lifts[i].classList.contains("busy")) {
-      let onFloorVal = parseInt(lifts[i].getAttribute("onfloor"));
-
-      if (onFloorVal === clickedFloor) {
+    // Input validation
+    if (isNaN(floorsCount) || isNaN(liftsCount) || floorsCount < 1 || liftsCount < 1 || floorsCount == 1) {
+        displayError('Please enter valid positive numbers greater than 1 for both floors and lifts.');
         return;
-      }
-    } else {
-      for (let i = 0; i < lifts.length; i++) {
-        let onFloorVal = parseInt(lifts[i].getAttribute("onfloor"));
-
-        if (onFloorVal === clickedFloor) {
-          MoveLift(clickedFloor, i);
-          return;
-        }
-      }
-
-      pos = i;
-      MoveLift(clickedFloor, pos);
-      break;
     }
-  }
 
-  if (pos === undefined) {
-    targetFloors.push(clickedFloor);
-  }
+    const control = document.getElementById('control-panel');
+    control.innerHTML = '';
+
+    const building = document.getElementById('building');
+    building.innerHTML = '';
+
+    liftState = Array(liftsCount).fill(1);
+    liftBusy = Array(liftsCount).fill(false);
+    liftDirections = Array(liftsCount).fill(null); // Initialize lift directions as null
+    requestedFloors = { up: new Set(), down: new Set() };
+
+    // Create floors
+    for (let i = 1; i <= floorsCount; i++) {
+        const floor = document.createElement('div');
+        
+        floor.className = 'floor';
+        floor.dataset.floor = i;
+
+        const floorInfo = document.createElement('div');
+        floorInfo.className = 'floor-info';
+        
+        const floorNumber = document.createElement('div');
+        floorNumber.className = 'floor-number';
+        floorNumber.innerText = `Floor ${i}`; // Add floor name
+
+
+
+
+
+        const floorButtons = document.createElement('div');
+        floorButtons.className = 'floor-buttons';
+
+
+
+
+        if (i !== floorsCount) {
+            const upButton = document.createElement('button');
+            upButton.className = 'up';
+            upButton.innerText = '↑';
+            upButton.onclick = () => requestLift(i, 'up');
+            floorButtons.appendChild(upButton);
+        }
+
+        if (i !== 1) {
+            const downButton = document.createElement('button');
+            downButton.className = 'down';
+            downButton.innerText = '↓';
+            downButton.onclick = () => requestLift(i, 'down');
+            floorButtons.appendChild(downButton);
+        }
+        floorInfo.appendChild(floorButtons); // Append buttons first
+        floorInfo.appendChild(floorNumber); // Append floor name next
+        
+        floor.appendChild(floorInfo);
+       
+        building.appendChild(floor);
+       
+        
+    }
+
+    // Create lifts
+    for (let i = 0; i < liftsCount; i++) {
+        const lift = document.createElement('div');
+        lift.className = 'lift';
+        lift.dataset.lift = i;
+        lift.style.transform = `translateY(0px)`;
+        lift.style.left = `${(i * 70) + 100}px`;
+        building.firstChild.appendChild(lift);
+    }
 }
 
-function MoveLift(clickedFloor, pos) {
-  const elevators = document.getElementsByClassName("lift-div");
+function displayError(message) {
+    const controlPanel = document.getElementById('control-panel');
+    const errorMessage = document.createElement('div');
+    errorMessage.id = 'error-message';
+    errorMessage.style.color = 'red';
+    errorMessage.style.marginTop = '10px';
+    errorMessage.innerText = message;
+    controlPanel.appendChild(errorMessage);
+}
 
-  const elevator = elevators[pos];
-
-  let currentFloor = elevator.getAttribute("onfloor");
-  let duration = Math.abs(parseInt(clickedFloor) - parseInt(currentFloor)) * 2;
-
-  elevator.setAttribute("onfloor", clickedFloor);
-
-  elevator.style.transition = `transform ${duration}s linear`;
-  elevator.style.transform = `translateY(-${
-    100 * parseInt(clickedFloor) - 100
-  }px)`;
-  elevator.classList.add("busy");
-
-  setTimeout(() => {
-    elevator.children[0].style.transform = "translateX(-100%)";
-    elevator.children[1].style.transform = "translateX(100%)";
-  }, duration * 1000 + 1000);
-
-  setTimeout(() => {
-    elevator.children[0].style.transform = "none";
-    elevator.children[1].style.transform = "none";
-  }, duration * 1000 + 4000);
-
-  setTimeout(() => {
-    elevator.classList.remove("busy");
-
-    if (targetFloors.length) {
-      MoveLift(targetFloors.shift(), pos);
+function requestLift(floor, direction) {
+    const button = document.querySelector(`[data-floor="${floor}"] .${direction}`);
+    
+    // Change the button color to red when pressed
+    if (button) {
+        button.style.backgroundColor = 'red';
     }
-  }, duration * 1000 + 7000);
+
+    if (requestedFloors[direction].has(floor)) {
+        return;
+    }
+
+    requestedFloors[direction].add(floor);
+    pendingRequests[direction].push(floor);
+    processNextRequest(direction);
+}
+
+function processNextRequest(direction) {
+    if (pendingRequests[direction].length === 0) return;
+
+    const floor = pendingRequests[direction].shift();
+    const lifts = document.querySelectorAll('.lift');
+    const targetY = -(floor - 1) * 112;
+    let closestLift = null;
+    let minDistance = Infinity;
+
+    lifts.forEach(lift => {
+        const liftIndex = parseInt(lift.dataset.lift);
+        const currentFloor = liftState[liftIndex];
+        const isBusy = liftBusy[liftIndex];
+        const currentDirection = liftDirections[liftIndex];
+        const distance = Math.abs(currentFloor - floor);
+
+        if (!isBusy && (currentDirection === direction || currentDirection === null)) {
+            if (distance < minDistance) {
+                closestLift = lift;
+                minDistance = distance;
+            }
+        }
+    });
+
+    if (closestLift) {
+        const liftIndex = parseInt(closestLift.dataset.lift);
+        liftBusy[liftIndex] = true;
+        liftDirections[liftIndex] = direction;
+        moveLift(closestLift, liftIndex, floor, targetY, direction);
+    } else {
+        pendingRequests[direction].push(floor);
+        setTimeout(() => processNextRequest(direction), 1000);
+    }
+}
+
+function moveLift(lift, liftIndex, targetFloor, targetY, direction) {
+    const currentFloor = liftState[liftIndex];
+    const floorsToMove = Math.abs(currentFloor - targetFloor);
+    const moveTime = floorsToMove * 2000;
+
+    setTimeout(() => {
+        lift.style.transition = `transform ${moveTime}ms ease`;
+        lift.style.transform = `translateY(${targetY}px)`;
+        liftState[liftIndex] = targetFloor;
+
+        setTimeout(() => {
+            openDoors(lift, liftIndex, targetFloor, direction);
+        }, moveTime);
+    }, 1000);
+}
+
+function openDoors(lift, liftIndex, targetFloor, direction) {
+    if (!lift.classList.contains('door-open')) {
+        lift.classList.add('door-open');
+
+         // Reset the button color back to normal
+         const button = document.querySelector(`[data-floor="${targetFloor}"] .${direction}`);
+         if (button) {
+             button.style.backgroundColor = ''; // Reset to default color
+         }
+
+        setTimeout(() => {
+            closeDoors(lift, liftIndex, direction);
+            requestedFloors[direction].delete(targetFloor);
+
+            // Check if there are requests in the same direction that the lift can pick up
+            if (requestedFloors[direction].size > 0) {
+                processNextRequest(direction);
+            } else {
+                liftDirections[liftIndex] = null; // Reset direction if no more requests in that direction
+            }
+
+        }, 2500);
+    }
+}
+
+function closeDoors(lift, liftIndex, direction) {
+    if (lift.classList.contains('door-open')) {
+        lift.classList.remove('door-open');
+    }
+
+    liftBusy[liftIndex] = false;
+    setTimeout(() => processNextRequest(direction), 500);
 }

@@ -1,34 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lift Simulator</title>
-    <link rel="stylesheet" href="styles.css"></link>
-    <script src="script.js" defer></script>
+    <title>Lift Simulation</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-
-     
- 
-    <h2> Lift Simulator</h2>
-    <div class="input__container">
-        <input type='number' id="floor-input" placeholder=" floors" min="1" max="10"/>
-        <input type='number' id="lift-input" placeholder="lifts" min="1" max="4"/>
-        <button type="submit" id="submit-btn">Submit</button>   
-    </div>
-
-
-
-    <div class="container" id="container">
-
-        
-
+    <div id="control-panel">
+        <input type="number" id="floors" min="2" placeholder="Enter No.of floors">
+        <input type="number" id="lifts" min="1" placeholder="Enter No.of lifts">
+        <button id="generate">Generate</button>
     </div>
     
+    <div id="building"></div>
 
- 
+    <script src="script.js"></script>
 </body>
+
 </html>
