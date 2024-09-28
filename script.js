@@ -218,12 +218,14 @@ function generateBuilding() {
         errorMessage.remove();
     }
 
-    const floorsCount = parseInt(document.getElementById('floors').value);
-    const liftsCount = parseInt(document.getElementById('lifts').value);
-
+    const floorsInput = document.getElementById('floors').value;
+    const liftsInput = document.getElementById('lifts').value;
+    
+    const floorsCount = parseInt(floorsInput, 10);
+    const liftsCount = parseInt(liftsInput, 10);
+    
     // Input validation
-    // Input validation
-    if (isNaN(floorsCount) || isNaN(liftsCount) || floorsCount < 1 || liftsCount < 1 || floorsCount == 1 || !Number.isInteger(floorsCount) || !Number.isInteger(liftsCount)) {
+    if (isNaN(floorsCount) || isNaN(liftsCount) || floorsCount < 1 || liftsCount < 1 || floorsCount == 1 || !Number.isInteger(floorsCount) || !Number.isInteger(liftsCount) || floorsInput.includes('.') || liftsInput.includes('.')) {
         displayError('Please enter valid positive integer numbers greater than 1 for both floors and lifts.');
         return;
     }
