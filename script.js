@@ -222,8 +222,9 @@ function generateBuilding() {
     const liftsCount = parseInt(document.getElementById('lifts').value);
 
     // Input validation
-    if (isNaN(floorsCount) || isNaN(liftsCount) || floorsCount < 1 || liftsCount < 1 || floorsCount == 1) {
-        displayError('Please enter valid positive numbers greater than 1 for both floors and lifts.');
+    // Input validation
+    if (isNaN(floorsCount) || isNaN(liftsCount) || floorsCount < 1 || liftsCount < 1 || floorsCount == 1 || !Number.isInteger(floorsCount) || !Number.isInteger(liftsCount)) {
+        displayError('Please enter valid positive integer numbers greater than 1 for both floors and lifts.');
         return;
     }
 
